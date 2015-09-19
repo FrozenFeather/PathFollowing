@@ -19,7 +19,7 @@ float disp(float lCount, float rCount, float mmpc) {
   //Calculate distance from encoder
   return (lCount + rCount) * mmpc / 2;
 }
-float angleChange(float lCount, float rCount float mmpc, float hl) {
+float angleChange(float lCount, float rCount, float mmpc, float hl) {
   //Calculate direction change from encoder
   return pAngle(degrees((rCount - lCount) * mmpc / 2 / hl));
 }

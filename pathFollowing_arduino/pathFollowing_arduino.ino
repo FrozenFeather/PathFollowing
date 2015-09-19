@@ -12,10 +12,10 @@ const byte LItr = 3;
 const byte RItr = 2;
 
 //Positions & Motions
-float x = 0, y = 0, th = 90;
+float x = 0, y = 0, th = 0;
 float Tx = 0, Ty = 0, Tth = 0;
 float v = 0, w = 0;
-float Kp = 1.35, Ka = 10, Kb = 0;
+float Kp = 1.2, Ka = 12, Kb = -0.8;
 float Wl = 255, Wr = 255;
 float leftCount = 0, rightCount = 0;
 float lastLeftCount = 10, lastRightCount = 10;
@@ -41,7 +41,7 @@ boolean stopping = false;
 
 //path
 const int pathPts = 4;
-float path[pathPts][2] = {{250,0}, {250,250}, {0,250}, {0,0}};
+float path[pathPts][2] = {{300, 0}, {300, 300}, {0, 300}, {0, 0}};//square Path
 
 void setup() {
   timer = millis();
@@ -60,11 +60,10 @@ void setup() {
   lcd.init();
   lcd.backlight();
   //path setting
-  //  for (int i = 0; i <= 10; i++) {
-  //    path[i][0] = 150 * sin(PI / 5 * i);
-  //    path[i][1] = 150 - 150 * cos(PI / 5 * i);
-  //  }
-  //  addSquare(200, true);
+//  for (int i = 1; i <= 16; i++) {
+//    path[i-1][0] = 300 * sin(PI / 8 * i);
+//    path[i-1][1] = 300 - 300 * cos(PI / 8 * i);
+//  }//CirclePath
   Tx = path[0][0];
   Ty = path[0][1];
 }
@@ -87,6 +86,13 @@ void loop() {
       case 'S':
       case 's':
         stopping = true;
+        break;
+      case 'T':
+      case 't':
+        stopping = false;
+        Tx = x;
+        Ty = y;
+        Tth = th + 90;
         break;
     }
   }
@@ -121,11 +127,12 @@ void loop() {
       Wl = 0;
       Wr = 0;
       current++;
-      if (current <= pathPts) {   //find next point
+      if (current < pathPts) {   //find next point
         Tx = path[current][0];
         Ty = path[current][1];
         Tth = inclination(x, y, Tx, Ty);
-      }
+      } else
+        stopping = true;
     }
     //actuate
     digitalWrite(M1, Wl > 0 ? LOW : HIGH);
@@ -143,7 +150,7 @@ void loop() {
         lcd.print("R:" + String(round(Wr)));
         lastRightCount = rightCount;
         lcd.setCursor(0, 1);
-        lcd.print("v:" + String(round((leftCount + rightCount) * mm_per_count / 2 / resolution)) + "mm/s");
+        lcd.print("v:" + String(round(disp(leftCount, rightCount, mm_per_count) / resolution)) + "mm/s");
       }
     } else {
       lcd.clear();
