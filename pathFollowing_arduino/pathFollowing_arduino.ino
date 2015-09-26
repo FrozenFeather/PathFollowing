@@ -43,6 +43,7 @@ boolean stopping = false;
 const int pathPts = 4;
 float path[pathPts][2] = {{300, 0}, {300, 300}, {0, 300}, {0, 0}};//square Path
 
+
 void setup() {
   timer = millis();
   Serial.begin(115200);
@@ -60,10 +61,10 @@ void setup() {
   lcd.init();
   lcd.backlight();
   //path setting
-//  for (int i = 1; i <= 16; i++) {
-//    path[i-1][0] = 300 * sin(PI / 8 * i);
-//    path[i-1][1] = 300 - 300 * cos(PI / 8 * i);
-//  }//CirclePath
+  //  for (int i = 1; i <= 16; i++) {
+  //    path[i-1][0] = 300 * sin(PI / 8 * i);
+  //    path[i-1][1] = 300 - 300 * cos(PI / 8 * i);
+  //  }//CirclePath
   Tx = path[0][0];
   Ty = path[0][1];
 }
@@ -96,7 +97,7 @@ void loop() {
         break;
     }
   }
-  if (millis() - timer > resolution * 1000 && !stopping) {
+  if (millis() - timer > resolution * 1000) {
     //th gen from compass
     x += xChange(leftCount, rightCount, mm_per_count, l);
     y += yChange(leftCount, rightCount, mm_per_count, l);
@@ -126,8 +127,8 @@ void loop() {
     if (p < Vmin * resolution) {  //arrive point
       Wl = 0;
       Wr = 0;
-      current++;
-      if (current < pathPts) {   //find next point
+      if (current + 1 < pathPts) { //find next point
+        current++;
         Tx = path[current][0];
         Ty = path[current][1];
         Tth = inclination(x, y, Tx, Ty);
@@ -135,10 +136,15 @@ void loop() {
         stopping = true;
     }
     //actuate
-    digitalWrite(M1, Wl > 0 ? LOW : HIGH);
-    digitalWrite(M2, Wr > 0 ? LOW : HIGH);
-    analogWrite(E1, abs(Wl));
-    analogWrite(E2, abs(Wr));
+    if (!stopping) {
+      digitalWrite(M1, Wl > 0 ? LOW : HIGH);
+      digitalWrite(M2, Wr > 0 ? LOW : HIGH);
+      analogWrite(E1, abs(Wl));
+      analogWrite(E2, abs(Wr));
+    } else {
+      analogWrite(E1, 0);
+      analogWrite(E2, 0);
+    }
     //lcd display
     if (leftCount != 0 && rightCount != 0) {
       if (leftCount != lastLeftCount || rightCount != lastRightCount) {
@@ -164,7 +170,7 @@ void loop() {
       lcd.print("theta:" + String(th));
     }
     lcd.setCursor(14, 1);
-    lcd.print(current);
+    lcd.print(current+1);
     timer = millis();
     leftCount = 0;
     rightCount = 0;

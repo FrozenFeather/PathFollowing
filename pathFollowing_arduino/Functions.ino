@@ -27,11 +27,17 @@ float xChange(float lCount, float rCount, float mmpc, float hl) {
   //Derive x-co from polar
   float d = disp(lCount, rCount, mmpc);
   float a = angleChange(lCount, rCount, mmpc, hl);
-  return d * cos(radians(th+a));
+  if ((rCount - lCount)*a < 0) {  //Identify if motion is cw or acw(as pAngle is taken)
+    a = 2*PI+a;
+  }
+  return d * cos(radians(th + pAngle(a / 2)));
 }
 float yChange(float lCount, float rCount, float mmpc, float hl) {
   //Derive y-co from polar
   float d = disp(lCount, rCount, mmpc);
   float a = angleChange(lCount, rCount, mmpc, hl);
-  return  d * sin(radians(th+a));
+  if ((rCount - lCount)*a < 0) {
+    a = 2*PI+a;
+  }
+  return  d * sin(radians(th + pAngle(a / 2)));
 }
