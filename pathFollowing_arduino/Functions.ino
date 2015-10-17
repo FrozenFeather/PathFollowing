@@ -19,25 +19,45 @@ float disp(float lCount, float rCount, float mmpc) {
   //Calculate distance from encoder
   return (lCount + rCount) * mmpc / 2;
 }
-float angleChange(float lCount, float rCount, float mmpc, float hl) {
-  //Calculate direction change from encoder
-  return pAngle(degrees((rCount - lCount) * mmpc / 2 / hl));
+float angleChange(float lCount, float rCount, float mmpc, float hl, float iY) {
+  //Calculate direction change from encodery
+
+  my3IMU.getYawPitchRoll(ypr);
+  float cAC = pAngle(iY - ypr[0] - th);
+  float eAC = pAngle(degrees((rCount - lCount) * mmpc / 2 / hl));
+  //return pAngle(degrees((rCount - lCount) * mmpc / 2 / hl));
+  return eAC;
 }
-float xChange(float lCount, float rCount, float mmpc, float hl) {
+float xChange(float lCount, float rCount, float mmpc, float hl, float iY) {
   //Derive x-co from polar
   float d = disp(lCount, rCount, mmpc);
-  float a = angleChange(lCount, rCount, mmpc, hl);
+  float a = angleChange(lCount, rCount, mmpc, hl, iY);
   if ((rCount - lCount)*a < 0) {  //Identify if motion is cw or acw(as pAngle is taken)
-    a = 2*PI+a;
+    a = 2 * PI + a;
   }
   return d * cos(radians(th + pAngle(a / 2)));
 }
-float yChange(float lCount, float rCount, float mmpc, float hl) {
+float yChange(float lCount, float rCount, float mmpc, float hl, float iY) {
   //Derive y-co from polar
   float d = disp(lCount, rCount, mmpc);
-  float a = angleChange(lCount, rCount, mmpc, hl);
+  float a = angleChange(lCount, rCount, mmpc, hl, iY);
   if ((rCount - lCount)*a < 0) {
-    a = 2*PI+a;
+    a = 2 * PI + a;
   }
   return  d * sin(radians(th + pAngle(a / 2)));
 }
+
+//Romeo Buttons
+int get_key(unsigned int input) {
+  // Convert ADC value to key number
+  int k;
+  for (k = 0; k < 5; k++) {
+    if (input < SBts[k]) {
+      return k;
+    }
+  }
+  if (k >= 5)
+    k = -1;     // No valid key pressed
+  return k;
+}
+

@@ -4,7 +4,7 @@ float x=0, y=0, th=0;
 float Tx=0, Ty=0, Tth=0;
 float p=0, a=0, b=0;
 float v=0, w=0;
-float Kp=2.7, Ka = 5, Kb = 0;
+float Kp=0.7, Ka = 15, Kb = 0.2;
 float Lx=x, Ly=y;
 float lastMouseX=-1, lastMouseY=-1;
 
@@ -15,10 +15,12 @@ boolean followingPath = false;
 
 float maxW = 0;
 
+final float scale = 0.7;
+
 Serial myPort;
 
 void setup() {
-  frameRate(5);
+  frameRate(20);
   //  size(displayWidth, displayHeight);
   size(800, 600);
   backgroundSetup();
@@ -65,14 +67,12 @@ void draw() {
 
   if (followingPath) {
     if (dist(Tx, Ty, x, y) < 5) {
-      if (path.size() == 1) {
-        path.remove(0);
+      if (path.size() == 0) {
         followingPath = false;
         drawing = true;
         //       println(maxW);
         return;
       }
-      path.remove(0);
       Tx = path.get(0)[0];
       Ty = path.get(0)[1];
       if (Serial.list().length>0)
@@ -81,12 +81,13 @@ void draw() {
         //        Tth = th;
         Tth = atan2(path.get(1)[1], path.get(1)[0]);
         if (Tth>180) Tth-=360;
+        path.remove(0);
       }
     }
   }
 }
 
-void mouseClicked() {
+void mousePressed() {
   if (drawing) {
     float p[] = {
       mouseX-width/2, height/2-mouseY
@@ -110,20 +111,14 @@ void mouseClicked() {
   }
 }
 
-void mouseDragged() {
-  //stroke(0, 255, 0);
-  //  line(mouseX, mouseY, pmouseX, pmouseY);
-  //  float p[] = {
-  //    pmouseX-width/2, height/2-pmouseY
-  //  };
-  //  path.add(p);
-}
-void mouseReleased() {
-  float p[] = {
-    mouseX-width/2, height/2-mouseY
-  };
-  path.add(p);
-}
+//void mouseDragged() {
+//stroke(0, 255, 0);
+//  line(mouseX, mouseY, pmouseX, pmouseY);
+//  float p[] = {
+//    pmouseX-width/2, height/2-pmouseY
+//  };
+//  path.add(p);
+//}
 
 void keyPressed() {
   switch(keyCode) {
@@ -147,10 +142,10 @@ void keyPressed() {
     print("{");
     for (int i = 0; i<path.size (); i++) {
       print("{");
-      print((int)((x-path.get(i)[0])*0.7));
+      print((int)((path.get(i)[0]-x)*scale));
       print(',');
-      print((int)((path.get(i)[1]-y)*0.7));
-      if (i == path.size()-1) {
+      print((int)((y-path.get(i)[1])*scale));
+      if (i != path.size()-1) {
         print("},");
       } else {
         print("}};");
@@ -187,11 +182,10 @@ void backgroundSetup() {
   text("Kβ = " + Kb, 5*width/6, 40);
   stroke(255, 255, 0);
   strokeWeight(5);
-  line(560, 580, 770, 580);
+  line(770-300*1/scale, 580, 770, 580);
   strokeWeight(1);
-  for (int i = 560; i<=770; i+=70) {
+  for (int i = (int)(770-3*100*1/scale); i<=770; i+=(int)(100*1/scale)) {
     line(i, 580, i, 565);
-    text(str((i-560)/70*50), i, 550);
+    text(str(round((i-770+3*100*1/scale)/(100*1/scale)*100)), i, 550);
   }
 }
-
