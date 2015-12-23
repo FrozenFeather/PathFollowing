@@ -19,14 +19,14 @@ float disp(float lCount, float rCount, float mmpc) {
   //Calculate distance from encoder
   return (lCount + rCount) * mmpc / 2;
 }
+const float ecRatio = 0.99;
 float angleChange(float lCount, float rCount, float mmpc, float hl, float iY) {
-  //Calculate direction change from encodery
-
+  //Calculate direction change from encoder
   my3IMU.getYawPitchRoll(ypr);
   float cAC = pAngle(iY - ypr[0] - th);
   float eAC = pAngle(degrees((rCount - lCount) * mmpc / 2 / hl));
   //return pAngle(degrees((rCount - lCount) * mmpc / 2 / hl));
-  return eAC;
+  return ecRatio * cAC + (1 - ecRatio) * eAC;
 }
 float xChange(float lCount, float rCount, float mmpc, float hl, float iY) {
   //Derive x-co from polar

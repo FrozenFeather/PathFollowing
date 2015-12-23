@@ -20,7 +20,7 @@ final float scale = 0.7;
 Serial myPort;
 
 void setup() {
-  frameRate(20);
+  frameRate(80);
   //  size(displayWidth, displayHeight);
   size(800, 600);
   backgroundSetup();

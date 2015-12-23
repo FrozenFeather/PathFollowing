@@ -29,17 +29,13 @@ const int SBts[5] = {30, 150, 360, 535, 760};
 //Positions & Motions
 float x = 0, y = 0, th = 0;
 float Tx = 0, Ty = 0, Tth = 0;
-float v = 0, w = 0;
 float Kp = 0.7, Ka = 15, Kb = -0.2;
 float Wl = 255, Wr = 255;
 float leftCount = 0, rightCount = 0;
 float lastLeftCount = 10, lastRightCount = 10;
 
 //IMU
-int raw_values[9];
-//char str[512];
 float ypr[3]; // yaw pitch roll
-float val[9];
 FreeIMU my3IMU = FreeIMU();
 float initialYaw = 0;
 
@@ -68,7 +64,6 @@ const int pathPts = 4;
 int path[pathPts][2] = {{300, 0}, {300, 300}, {0, 300}, {0, 0}};//square Path
 
 void setup() {
-  timer = millis();
   Wire.begin();
   Serial.begin(115200);
   //initialize
@@ -87,12 +82,14 @@ void setup() {
   //  LCD
   lcd.init();
   lcd.backlight();
+  lcd.setCursor(0, 0);
+  lcd.print("calib e-compass");
 
-  delay(500);
   my3IMU.init(); // the parameter enable or disable fast mode
-  delay(500);
   my3IMU.getYawPitchRoll(ypr);
   initialYaw = ypr[0];
+  delay(2000);
+  timer = millis();
 
   Tx = path[0][0];
   Ty = path[0][1];
@@ -129,31 +126,31 @@ void loop() {
   //        break;
   //    }
   //  }
-  int key = get_key(analogRead(A7));
-  if (key != -1) {
-    if (key == SBts[0]) {
-    } else if (key == SBts[1]) {
-    } else if (key == SBts[4]) {
-      stopping = !stopping;
-    }
-  }
-  if (millis() - timer > resolution * 1000) {
+//  int key = get_key(analogRead(A7));
+//  if (key != -1) {
+//    if (key == SBts[0]) {
+//    } else if (key == SBts[1]) {
+//    } else if (key == SBts[4]) {
+//      stopping = !stopping;
+//    }
+//  }
+  if (millis() - timer > resolution * 1000 && millis() > 15000) {
     //th gen from compass
     x += xChange(leftCount, rightCount, mm_per_count, l, initialYaw);
     y += yChange(leftCount, rightCount, mm_per_count, l, initialYaw);
     th += angleChange(leftCount, rightCount, mm_per_count, l, initialYaw);
     th = pAngle(th);
-    //    my3IMU.getYawPitchRoll(ypr);
-    //    th = pAngle(initialYaw - ypr[0]);
+//        my3IMU.getYawPitchRoll(ypr);
+//        th = pAngle(initialYaw - ypr[0]);
 
     //update location
     float p = dist(x, y, Tx, Ty);
     float a = pAngle(inclination(x, y, Tx, Ty) - th);
     float b = pAngle(-th - a + Tth);
 
-    v = constrain(Kp * p, Vmin, Vmax);
+    float v = constrain(Kp * p, Vmin, Vmax);
     v = map(v, 0, Vmax, 0, 255 * r);
-    w = constrain(Ka * a + Kb * b, -Wmax, Wmax);
+    float w = constrain(Ka * a + Kb * b, -Wmax, Wmax);
     w = map(w, -Wmax, Wmax, -255 * r / l, 255 * r / l);
 
     //polar->2wheel
@@ -162,10 +159,10 @@ void loop() {
 
     //    Serial.print(x);
     //    Serial.print("  ");
-    //    Serial.print(y);
-    //    Serial.print(initialYaw);
-    //    Serial.print("    ");
-    //    Serial.println(ypr[0]);
+    //    Serial.println(y);
+    Serial.print(initialYaw);
+    Serial.print(",");
+    Serial.println(th);
 
     //Shift to next target point
     if (p < Vmin * resolution) {  //arrive point
@@ -223,6 +220,15 @@ void loop() {
     timer = millis();
     leftCount = 0;
     rightCount = 0;
+  }
+  else if (millis() <= 15000) {
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("calib e-compass");
+    my3IMU.getYawPitchRoll(ypr);
+    initialYaw = ypr[0];
+    lcd.setCursor(0, 1);
+    lcd.print("theta: " + String(ypr[0]));
   }
 }
 
