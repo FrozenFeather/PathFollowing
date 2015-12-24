@@ -24,12 +24,12 @@ const byte E2 = 6;
 const byte LItr = 3;
 const byte RItr = 2;
 //  Romeo A7 Buttons
-const int SBts[5] = {30, 150, 360, 535, 760};
+//const int SBts[5] = {30, 150, 360, 535, 760};
 
 //Positions & Motions
 float x = 0, y = 0, th = 0;
 float Tx = 0, Ty = 0, Tth = 0;
-float Kp = 0.7, Ka = 15, Kb = -0.2;
+float Kp = 0.65, Ka = 3, Kb = 0;
 float Wl = 255, Wr = 255;
 float leftCount = 0, rightCount = 0;
 float lastLeftCount = 10, lastRightCount = 10;
@@ -41,9 +41,9 @@ float initialYaw = 0;
 
 //Configuration
 const float l = 175 / 2, r = 25; //l: half of wheel distance, r: radius of wheel :in mm
-const float mm_per_count = 1.33; //encoder
+const float mm_per_count = 1.6; //encoder
 const float Vmax = 300;      //mm/s
-const float Vmin = 160;       //145
+const float Vmin = 150;       //145
 const float Wmax = 100;      //deg/s
 
 //Accuracy
@@ -61,7 +61,7 @@ int stopTime = 0;
 
 //path
 const int pathPts = 4;
-int path[pathPts][2] = {{300, 0}, {300, 300}, {0, 300}, {0, 0}};//square Path
+int path[pathPts][2] = {{600, 0}, {600, 600}, {0, 600}, {0, 0}};//square Path
 
 void setup() {
   Wire.begin();
@@ -126,22 +126,22 @@ void loop() {
   //        break;
   //    }
   //  }
-//  int key = get_key(analogRead(A7));
-//  if (key != -1) {
-//    if (key == SBts[0]) {
-//    } else if (key == SBts[1]) {
-//    } else if (key == SBts[4]) {
-//      stopping = !stopping;
-//    }
-//  }
-  if (millis() - timer > resolution * 1000 && millis() > 15000) {
+  //  int key = get_key(analogRead(A7));
+  //  if (key != -1) {
+  //    if (key == SBts[0]) {
+  //    } else if (key == SBts[1]) {
+  //    } else if (key == SBts[4]) {
+  //      stopping = !stopping;
+  //    }
+  //  }
+  if (millis() - timer > resolution * 1000 && millis() > 18000) {
     //th gen from compass
     x += xChange(leftCount, rightCount, mm_per_count, l, initialYaw);
     y += yChange(leftCount, rightCount, mm_per_count, l, initialYaw);
     th += angleChange(leftCount, rightCount, mm_per_count, l, initialYaw);
     th = pAngle(th);
-//        my3IMU.getYawPitchRoll(ypr);
-//        th = pAngle(initialYaw - ypr[0]);
+//    my3IMU.getYawPitchRoll(ypr);
+//    th = pAngle(initialYaw - ypr[0]);
 
     //update location
     float p = dist(x, y, Tx, Ty);
@@ -151,7 +151,7 @@ void loop() {
     float v = constrain(Kp * p, Vmin, Vmax);
     v = map(v, 0, Vmax, 0, 255 * r);
     float w = constrain(Ka * a + Kb * b, -Wmax, Wmax);
-    w = map(w, -Wmax, Wmax, -255 * r / l, 255 * r / l);
+    w = map(w, -Wmax, Wmax, -510 * r / l, 510 * r / l);
 
     //polar->2wheel
     Wl = constrain((v - w * l) / r, -255, 255);
@@ -160,15 +160,16 @@ void loop() {
     //    Serial.print(x);
     //    Serial.print("  ");
     //    Serial.println(y);
-    Serial.print(initialYaw);
-    Serial.print(",");
-    Serial.println(th);
+//    Serial.print(initialYaw);
+//    Serial.print(",");
+//    Serial.println(th);
 
     //Shift to next target point
     if (p < Vmin * resolution) {  //arrive point
       Wl = 0;
       Wr = 0;
       stopTime = 500;
+      if (current + 1 >= pathPts) current = -1;
       if (current + 1 < pathPts) { //find next point
         current++;
         Tx = path[current][0];
@@ -176,8 +177,8 @@ void loop() {
         if (current + 1 < pathPts) {
           Tth = inclination(Tx, Ty, path[current + 1][0], path[current + 1][1]);
         }
-      } else
-        stopping = true;
+      }// else
+        //stopping = true;
     }
     //actuate
     if (!stopping && stopTime <= 0) {
@@ -221,7 +222,7 @@ void loop() {
     leftCount = 0;
     rightCount = 0;
   }
-  else if (millis() <= 15000) {
+  else if (millis() <= 18000) {
     lcd.clear();
     lcd.setCursor(0, 0);
     lcd.print("calib e-compass");

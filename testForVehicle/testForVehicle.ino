@@ -8,7 +8,7 @@ byte value = 0;
 unsigned long leftCount = 0, rightCount = 0;
 unsigned long totalLeftCount = 0, totalRightCount = 0;
 const float cc = 2 * PI * 25; //in mm;
-const float mmPerCount = 1
+const float mmPerCount = 1;
 
 void setup() {
   timer = millis();
@@ -53,8 +53,8 @@ void loop() {
     leftCount = 0;
     rightCount = 0;
     lcd.setCursor(0, 1);
-    lcd.print("v:" + String(round(v)) + "mm/s");
-    Serial.println((totalLeftCount + totalRightCount)*mmPerCount/2);
+    //lcd.print("v:" + String(round(v)) + "mm/s");
+    lcd.println((totalLeftCount + totalRightCount)*mmPerCount/2);
   }
 }
 void leftEncoder() {
